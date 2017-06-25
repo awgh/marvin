@@ -117,9 +117,21 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 				args := strings.Split(line.Args[1], " ")
 
 				switch args[0] {
-				case ".wtf":
-					conn.Privmsg(config.Channel, "macker is a twat")
+
+				case ".5":
+					fallthrough
+				case ".5questions":
+					if len(args) > 1 {
+						conn.Privmsg(config.Channel, "Greetings "+string(2)+args[1]+string(0xF)+" and Welcome to "+string(2)+"Milliways"+string(0xF)+", the Restaurant at the End of the Universe!")
+					}
+					conn.Privmsg(config.Channel, "  Please answer the following questions, by way of introduction:")
+					conn.Privmsg(config.Channel, "  1.  Who are you?")
+					conn.Privmsg(config.Channel, "  2.  How did you get here?")
+					conn.Privmsg(config.Channel, "  3.  What can Milliways do for you?")
+					conn.Privmsg(config.Channel, "  4.  What can you do for Milliways?")
+					conn.Privmsg(config.Channel, "  5.  What are you good at that isn't computers?")
 					break
+
 				case ".macker":
 					conn.Privmsg(config.Channel, "macker is a twat")
 					break
