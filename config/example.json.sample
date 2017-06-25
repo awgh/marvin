@@ -1,0 +1,12 @@
+{
+	"Host":"",
+	"Port":"",
+	"Nick":"",
+	"Password":"",
+	"Name":"",
+	"Version":"",
+	"Quit":"",
+	"ProxyEnabled":true|false,
+	"SASL":true|false,
+	"Proxy":""
+}
