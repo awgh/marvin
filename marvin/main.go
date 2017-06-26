@@ -116,24 +116,26 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 
 				args := strings.Split(line.Args[1], " ")
 
+				// TODO: We should probably make a generic command interface and have commands register themselves to make this cleaner
+
 				switch args[0] {
 
 				case ".5":
 					fallthrough
 				case ".5questions":
 					if len(args) > 1 {
-						conn.Privmsg(config.Channel, "Greetings "+string(2)+args[1]+string(0xF)+" and Welcome to "+string(2)+"Milliways"+string(0xF)+", the Restaurant at the End of the Universe!")
+						conn.Notice(config.Channel, "Greetings "+string(2)+args[1]+string(0xF)+" and Welcome to "+string(2)+"Milliways"+string(0xF)+", the Restaurant at the End of the Universe!")
 					}
-					conn.Privmsg(config.Channel, "  Please answer the following questions, by way of introduction:")
-					conn.Privmsg(config.Channel, "  1.  Who are you?")
-					conn.Privmsg(config.Channel, "  2.  How did you get here?")
-					conn.Privmsg(config.Channel, "  3.  What can Milliways do for you?")
-					conn.Privmsg(config.Channel, "  4.  What can you do for Milliways?")
-					conn.Privmsg(config.Channel, "  5.  What are you good at that isn't computers?")
+					conn.Notice(config.Channel, "  Please answer the following questions, by way of introduction:")
+					conn.Notice(config.Channel, "  1.  Who are you?")
+					conn.Notice(config.Channel, "  2.  How did you get here?")
+					conn.Notice(config.Channel, "  3.  What can Milliways do for you?")
+					conn.Notice(config.Channel, "  4.  What can you do for Milliways?")
+					conn.Notice(config.Channel, "  5.  What are you good at that isn't computers?")
 					break
 
 				case ".macker":
-					conn.Privmsg(config.Channel, "macker is a twat")
+					conn.Notice(config.Channel, "macker is a twat")
 					break
 
 				case ".d":
@@ -153,14 +155,14 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 							dnames = append(dnames, dname)
 						}
 						if len(dnames) == 1 {
-							conn.Privmsg(config.Channel, string(2)+dname)
+							conn.Notice(config.Channel, string(2)+dname)
 							ilines := strings.Split(ingredients, "\n")
 							for _, il := range ilines {
-								conn.Privmsg(config.Channel, il)
+								conn.Notice(config.Channel, il)
 							}
-							conn.Privmsg(config.Channel, prep)
+							conn.Notice(config.Channel, prep)
 						} else if len(dnames) > 0 {
-							conn.Privmsg(config.Channel, strings.Join(dnames, ", "))
+							conn.Notice(config.Channel, strings.Join(dnames, ", "))
 						}
 					} else {
 						rc, err := db.Query("SELECT DISTINCT name from drinks ORDER BY name ASC;")
@@ -174,7 +176,7 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 							dks = append(dks, drink)
 						}
 						if len(dks) > 0 {
-							conn.Privmsg(config.Channel, strings.Join(dks, ", "))
+							conn.Notice(config.Channel, strings.Join(dks, ", "))
 						}
 					}
 					break
@@ -205,9 +207,9 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 							keys = append(keys, k)
 						}
 						if len(keys) == 1 && len(dks) > 0 {
-							conn.Privmsg(config.Channel, "Drinks made with "+string(2)+bname+string(0xF)+": "+strings.Join(dks, ", "))
+							conn.Notice(config.Channel, "Drinks made with "+string(2)+bname+string(0xF)+": "+strings.Join(dks, ", "))
 						} else if len(keys) > 1 {
-							conn.Privmsg(config.Channel, strings.Join(keys, ", "))
+							conn.Notice(config.Channel, strings.Join(keys, ", "))
 						}
 					} else {
 						rc, err := db.Query("SELECT DISTINCT ingredient from ingredients ORDER BY ingredient ASC;")
@@ -221,7 +223,7 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 							igs = append(igs, ingredient)
 						}
 						if len(igs) > 0 {
-							conn.Privmsg(config.Channel, strings.Join(igs, ", "))
+							conn.Notice(config.Channel, strings.Join(igs, ", "))
 						}
 					}
 					break
