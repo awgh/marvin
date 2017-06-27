@@ -36,6 +36,14 @@ type MarvinConfig struct {
 	Channel      string
 }
 
+// Message contains an answering machine message
+type Message struct {
+	From   string
+	To     string
+	Text   string
+	Public bool
+}
+
 // LinePrinter prints a line for debugging
 func LinePrinter(line *irc.Line) {
 	log.Println("Public:", line.Public())
@@ -52,6 +60,15 @@ func LinePrinter(line *irc.Line) {
 	log.Println("Time:", line.Time)
 }
 
+func remove(s []string, r string) []string {
+	for i, v := range s {
+		if v == r {
+			return append(s[:i], s[i+1:]...)
+		}
+	}
+	return s
+}
+
 func (s sLogger) Debug(f string, a ...interface{}) {
 	log.Printf(f, a...)
 }
@@ -66,9 +83,21 @@ func (s sLogger) Error(f string, a ...interface{}) {
 }
 
 var configDir = flag.String("confdir", "config", "Config Directory")
-
-//var quitChans []chan bool
 var ircClients []*irc.Conn
+
+func deliverMessages(conn *irc.Conn, nick string, channel string) {
+	v, ok := namesMessages[nick]
+	if ok {
+		for msg := range v {
+			if v[msg].Public {
+				conn.Notice(channel, v[msg].From+" left a message for "+v[msg].To+": "+v[msg].Text)
+			} else {
+				conn.Privmsg(v[msg].To, v[msg].From+" left a message: "+v[msg].Text)
+			}
+		}
+		namesMessages[nick] = make([]Message, 0)
+	}
+}
 
 func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 
@@ -88,7 +117,6 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 	if config.ProxyEnabled {
 		cfg.Proxy = config.Proxy
 	}
-
 	cfg.PingFreq = time.Second * 120
 
 	c := irc.Client(cfg)
@@ -107,6 +135,8 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 		func(conn *irc.Conn, line *irc.Line) {
 
 			LinePrinter(line)
+
+			deliverMessages(conn, line.Nick, config.Channel)
 
 			var sendFn func(string)
 			if line.Public() { // respond to public messages publicly
@@ -128,21 +158,19 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 					sendPriv(string(2) + "Marvin " + string(0xF) + "responds to private messages privately and responds to channel commands as notices,")
 					sendPriv("with the exception of the .5questions command, where the response is always broadcast to the channel.")
 					sendPriv("The following commands are available:")
-					sendPriv(string(2) + ".5 [username]" + string(0xF))
-					sendPriv(".5questions [username]")
+					sendPriv(string(2) + ".5 [username]" + string(0xF) + "(alias: .5questions)")
 					sendPriv(" will broadcast the Five Questions, with an optional greeting for " +
 						string(2) + "username" + string(0xF) + " to the channel.")
-					sendPriv(string(2) + ".b [booze_name_or_prefix]" + string(0xF))
-					sendPriv(".booze [booze_name_or_prefix]")
+					sendPriv(string(2) + ".booze [booze_name_or_prefix]" + string(0xF) + "(alias: .b)")
 					sendPriv(" will list Boozes used in the mixed drink database.  This works as a string prefix search.")
 					sendPriv("If there is more than one match, all matches will be listed.  If no argumet is given, all Boozes will be listed.")
 					sendPriv("If only one Booze matches, the list of Drinks using that Booze will be shown.")
-					sendPriv(string(2) + ".d [drink_name_or_prefix]" + string(0xF))
-					sendPriv("Alias .drink [drink_name_or_prefix]")
+					sendPriv(string(2) + ".drink [drink_name_or_prefix]" + string(0xF) + "(alias: .d)")
 					sendPriv(" will display Drink recipes from the mixed drink database.  This works as a string prefix search.")
 					sendPriv("If there is more than one match, all matches will be listed.  If no argumet is given, all Drinks will be listed.")
 					sendPriv("If only one Drink matches, the recipe for that drink will be shown.")
-
+					sendPriv(string(2) + ".tell <nick> <message>" + string(0xF) + "(alias: .t)")
+					sendPriv(" will send a message to nick the next time they join or talk in channel.  Private tells will be sent privately.")
 					break
 
 				case ".5":
@@ -253,6 +281,24 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 					}
 					break
 
+				case ".t":
+					fallthrough
+				case ".tell":
+					if len(args) > 3 {
+						_, ok := namesMessages[args[1]]
+						if !ok {
+							namesMessages[line.Nick] = make([]Message, 1)
+						}
+						namesMessages[args[1]] = append(namesMessages[args[1]], Message{
+							From:   line.Nick,
+							To:     args[1],
+							Text:   strings.Join(args[2:], " "),
+							Public: line.Public(),
+						})
+						sendFn("fine, I will relay your message... here I am, brain the size of a planet...")
+					}
+					break
+
 				default: // The Wormhole Case : forward public messages across servers
 					for i := range ircClients {
 						if ircClients[i] != conn {
@@ -267,13 +313,21 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 
 	c.HandleFunc(irc.JOIN,
 		func(conn *irc.Conn, line *irc.Line) {
-			log.Println("JOIN:")
-			log.Println(line)
+			log.Println("JOIN: " + line.Nick)
+			hostsChansNames[config.Host][config.Channel] = append(hostsChansNames[config.Host][config.Channel], line.Nick)
+			deliverMessages(conn, line.Nick, config.Channel)
 		})
+
+	c.HandleFunc(irc.PART,
+		func(conn *irc.Conn, line *irc.Line) {
+			log.Println("PART: " + line.Nick)
+			remove(hostsChansNames[config.Host][config.Channel], line.Nick)
+		})
+
 	c.HandleFunc(irc.PING,
 		func(conn *irc.Conn, line *irc.Line) {
-			log.Println("PING:")
-			log.Println(line)
+			//log.Println("PING:")
+			//log.Println(line)
 		})
 
 	/*
@@ -296,11 +350,15 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 // Map of hostnames to a map of chan names to a list of string nicks
 var hostsChansNames map[string]map[string][]string
 
+// Map of answering machine messages
+var namesMessages map[string][]Message
+
 func main() {
 	flag.Parse()
 	logging.SetLogger(sLogger{})
 
 	hostsChansNames = make(map[string]map[string][]string)
+	namesMessages = make(map[string][]Message)
 
 	// Drinks DB setup
 	db, err := sql.Open("sqlite3", "./IBA-Cocktails-2016.sqlite3")
@@ -338,6 +396,6 @@ func main() {
 				}
 			}
 		}
-		time.Sleep(time.Minute)
+		time.Sleep(time.Minute / 4)
 	}
 }
