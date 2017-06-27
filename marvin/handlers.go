@@ -45,7 +45,7 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 			sendPriv("If only one Booze matches, the list of Drinks using that Booze will be shown.")
 			sendPriv(string(2) + ".drink [drink_name_or_prefix]" + string(0xF) + "(alias: .d)")
 			sendPriv(" will display Drink recipes from the mixed drink database.  This works as a string prefix search.")
-			sendPriv("If there is more than one match, all matches will be listed.  If no argumet is given, all Drinks will be listed.")
+			sendPriv("If there is more than one match, all matches will be listed.  If no argument is given, all Drinks will be listed.")
 			sendPriv("If only one Drink matches, the recipe for that drink will be shown.")
 			sendPriv(string(2) + ".tell <nick> <message>" + string(0xF) + "(alias: .t)")
 			sendPriv(" will send a message to nick the next time they join or talk in channel.  Private tells will be sent privately.")
@@ -162,7 +162,7 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 		case ".t":
 			fallthrough
 		case ".tell":
-			if len(args) > 3 {
+			if len(args) > 2 {
 				_, ok := namesMessages[args[1]]
 				if !ok {
 					namesMessages[line.Nick] = make([]Message, 1)
