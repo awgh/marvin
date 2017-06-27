@@ -36,6 +36,7 @@ type MarvinConfig struct {
 	Channel      string
 }
 
+// LinePrinter prints a line for debugging
 func LinePrinter(line *irc.Line) {
 	log.Println("Public:", line.Public())
 	log.Println("Target:", line.Target())
@@ -107,33 +108,32 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 
 			LinePrinter(line)
 
-			//sender := line.Nick
-			if !line.Public() && line.Args[0] == config.Nick {
-				for i := range ircClients {
-					ircClients[i].Privmsg(config.Channel, config.Channel+" "+line.Text())
-				}
-			} else if line.Public() && line.Target() == config.Channel {
-
-				args := strings.Split(line.Args[1], " ")
-
+			var sendFn func(string)
+			if line.Public() { // respond to public messages publically
+				sendFn = func(msg string) { conn.Notice(config.Channel, msg) }
+			} else { // respond to private messages privately
+				sendFn = func(msg string) { conn.Privmsg(line.Nick, msg) }
+			}
+			args := strings.Split(line.Args[1], " ")
+			if len(args) > 0 {
 				switch args[0] {
 
 				case ".5":
 					fallthrough
 				case ".5questions":
 					if len(args) > 1 {
-						conn.Privmsg(config.Channel, "Greetings "+string(2)+args[1]+string(0xF)+" and Welcome to "+string(2)+"Milliways"+string(0xF)+", the Restaurant at the End of the Universe!")
+						sendFn("Greetings " + string(2) + args[1] + string(0xF) + " and Welcome to " + string(2) + "Milliways" + string(0xF) + ", the Restaurant at the End of the Universe!")
 					}
-					conn.Privmsg(config.Channel, "  Please answer the following questions, by way of introduction:")
-					conn.Privmsg(config.Channel, "  1.  Who are you?")
-					conn.Privmsg(config.Channel, "  2.  How did you get here?")
-					conn.Privmsg(config.Channel, "  3.  What can Milliways do for you?")
-					conn.Privmsg(config.Channel, "  4.  What can you do for Milliways?")
-					conn.Privmsg(config.Channel, "  5.  What are you good at that isn't computers?")
+					sendFn("  Please answer the following questions, by way of introduction:")
+					sendFn("  1.  Who are you?")
+					sendFn("  2.  How did you get here?")
+					sendFn("  3.  What can Milliways do for you?")
+					sendFn("  4.  What can you do for Milliways?")
+					sendFn("  5.  What are you good at that isn't computers?")
 					break
 
 				case ".macker":
-					conn.Privmsg(config.Channel, "macker is a twat")
+					sendFn("macker is a twat")
 					break
 
 				case ".d":
@@ -153,14 +153,14 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 							dnames = append(dnames, dname)
 						}
 						if len(dnames) == 1 {
-							conn.Privmsg(config.Channel, string(2)+dname)
+							sendFn(string(2) + dname)
 							ilines := strings.Split(ingredients, "\n")
 							for _, il := range ilines {
-								conn.Privmsg(config.Channel, il)
+								sendFn(il)
 							}
-							conn.Privmsg(config.Channel, prep)
+							sendFn(prep)
 						} else if len(dnames) > 0 {
-							conn.Privmsg(config.Channel, strings.Join(dnames, ", "))
+							sendFn(strings.Join(dnames, ", "))
 						}
 					} else {
 						rc, err := db.Query("SELECT DISTINCT name from drinks ORDER BY name ASC;")
@@ -174,7 +174,7 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 							dks = append(dks, drink)
 						}
 						if len(dks) > 0 {
-							conn.Privmsg(config.Channel, strings.Join(dks, ", "))
+							sendFn(strings.Join(dks, ", "))
 						}
 					}
 					break
@@ -205,9 +205,9 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 							keys = append(keys, k)
 						}
 						if len(keys) == 1 && len(dks) > 0 {
-							conn.Privmsg(config.Channel, "Drinks made with "+string(2)+bname+string(0xF)+": "+strings.Join(dks, ", "))
+							sendFn("Drinks made with " + string(2) + bname + string(0xF) + ": " + strings.Join(dks, ", "))
 						} else if len(keys) > 1 {
-							conn.Privmsg(config.Channel, strings.Join(keys, ", "))
+							sendFn(strings.Join(keys, ", "))
 						}
 					} else {
 						rc, err := db.Query("SELECT DISTINCT ingredient from ingredients ORDER BY ingredient ASC;")
@@ -221,7 +221,7 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 							igs = append(igs, ingredient)
 						}
 						if len(igs) > 0 {
-							conn.Privmsg(config.Channel, strings.Join(igs, ", "))
+							sendFn(strings.Join(igs, ", "))
 						}
 					}
 					break
@@ -304,9 +304,7 @@ func main() {
 
 	for {
 		for _, v := range ircClients {
-			if v.Connected() {
-				log.Println("Connected")
-			} else {
+			if !v.Connected() {
 				log.Println("Connecting...")
 				if err := v.Connect(); err != nil {
 					log.Println(err.Error())
