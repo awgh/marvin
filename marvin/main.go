@@ -109,27 +109,54 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 			LinePrinter(line)
 
 			var sendFn func(string)
-			if line.Public() { // respond to public messages publically
+			if line.Public() { // respond to public messages publicly
 				sendFn = func(msg string) { conn.Notice(config.Channel, msg) }
 			} else { // respond to private messages privately
 				sendFn = func(msg string) { conn.Privmsg(line.Nick, msg) }
 			}
+			broadcastFn := func(msg string) { conn.Privmsg(config.Channel, msg) }
+			sendPriv := func(msg string) { conn.Notice(line.Nick, msg) }
+
 			args := strings.Split(line.Args[1], " ")
 			if len(args) > 0 {
 				switch args[0] {
+
+				case ".h":
+					fallthrough
+				case ".help":
+					sendPriv("*****" + string(2) + "Marvin Help" + string(0xF) + "*****")
+					sendPriv(string(2) + "Marvin " + string(0xF) + "responds to private messages privately and responds to channel commands as notices,")
+					sendPriv("with the exception of the .5questions command, where the response is always broadcast to the channel.")
+					sendPriv("The following commands are available:")
+					sendPriv(string(2) + ".5 [username]" + string(0xF))
+					sendPriv(".5questions [username]")
+					sendPriv(" will broadcast the Five Questions, with an optional greeting for " +
+						string(2) + "username" + string(0xF) + " to the channel.")
+					sendPriv(string(2) + ".b [booze_name_or_prefix]" + string(0xF))
+					sendPriv(".booze [booze_name_or_prefix]")
+					sendPriv(" will list Boozes used in the mixed drink database.  This works as a string prefix search.")
+					sendPriv("If there is more than one match, all matches will be listed.  If no argumet is given, all Boozes will be listed.")
+					sendPriv("If only one Booze matches, the list of Drinks using that Booze will be shown.")
+					sendPriv(string(2) + ".d [drink_name_or_prefix]" + string(0xF))
+					sendPriv("Alias .drink [drink_name_or_prefix]")
+					sendPriv(" will display Drink recipes from the mixed drink database.  This works as a string prefix search.")
+					sendPriv("If there is more than one match, all matches will be listed.  If no argumet is given, all Drinks will be listed.")
+					sendPriv("If only one Drink matches, the recipe for that drink will be shown.")
+
+					break
 
 				case ".5":
 					fallthrough
 				case ".5questions":
 					if len(args) > 1 {
-						sendFn("Greetings " + string(2) + args[1] + string(0xF) + " and Welcome to " + string(2) + "Milliways" + string(0xF) + ", the Restaurant at the End of the Universe!")
+						broadcastFn("Greetings " + string(2) + args[1] + string(0xF) + " and Welcome to " + string(2) + "Milliways" + string(0xF) + ", the Restaurant at the End of the Universe!")
 					}
-					sendFn("  Please answer the following questions, by way of introduction:")
-					sendFn("  1.  Who are you?")
-					sendFn("  2.  How did you get here?")
-					sendFn("  3.  What can Milliways do for you?")
-					sendFn("  4.  What can you do for Milliways?")
-					sendFn("  5.  What are you good at that isn't computers?")
+					broadcastFn("  Please answer the following questions, by way of introduction:")
+					broadcastFn("  1.  Who are you?")
+					broadcastFn("  2.  How did you get here?")
+					broadcastFn("  3.  What can Milliways do for you?")
+					broadcastFn("  4.  What can you do for Milliways?")
+					broadcastFn("  5.  What are you good at that isn't computers?")
 					break
 
 				case ".macker":
