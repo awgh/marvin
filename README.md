@@ -1,6 +1,7 @@
 # marvin
 
 **Marvin Help**
+
 Marvin responds to private messages privately and responds to channel commands as notices,
 with the exception of the .5questions command, where the response is always broadcast to the channel.
 The following commands are available:
