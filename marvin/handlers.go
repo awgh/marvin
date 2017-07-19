@@ -39,6 +39,8 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 			sendPriv(string(2) + ".5 [username]" + string(0xF) + "(alias: .5questions)")
 			sendPriv(" will broadcast the Five Questions, with an optional greeting for " +
 				string(2) + "username" + string(0xF) + " to the channel.")
+			sendPriv(string(2) + ".x4 [username]" + string(0xF) + "(alias: .x4questions)")
+			sendPriv(" will ask additional four Questions.")
 			sendPriv(string(2) + ".booze [booze_name_or_prefix]" + string(0xF) + "(alias: .b)")
 			sendPriv(" will list Boozes used in the mixed drink database.  This works as a string prefix search.")
 			sendPriv("If there is more than one match, all matches will be listed.  If no argumet is given, all Boozes will be listed.")
@@ -65,8 +67,27 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 			broadcastFn("  5.  What are you good at that isn't computers?")
 			break
 
+		case ".x4":
+			fallthrough
+		case ".x4questions":
+			if len(args) > 1 {
+				broadcastFn("Hi " + string(2) + args[1] + string(0xF))
+			}
+			broadcastFn("  Here are some extra questions, by lubiana and macker:")
+			broadcastFn("  1.  Are you cute?")
+			broadcastFn("  2.  Do you like cuddles?")
+			broadcastFn("  3.  Do you like cute dogs or cats?")
+			broadcastFn("  4.  How much time a day do you spend cuddling?")
+			break
+
 		case ".macker":
 			sendFn("macker is a twat")
+			break
+
+		case ".mcfly":
+			// maybe switch to chain file
+			// http://www.imdb.com/character/ch0001829/quotes
+			sendFn("If you put your mind to it, you can accomplish anything.")
 			break
 
 		case ".d":
