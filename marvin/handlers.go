@@ -36,10 +36,10 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 			sendPriv(string(2) + "Marvin " + string(0xF) + "responds to private messages privately and responds to channel commands as notices,")
 			sendPriv("with the exception of the .5questions command, where the response is always broadcast to the channel.")
 			sendPriv("The following commands are available:")
-			sendPriv(string(2) + ".5 [username]" + string(0xF) + "(alias: .5questions)")
+			sendPriv(string(2) + ".5questions [username]" + string(0xF) + "(alias: .5)")
 			sendPriv(" will broadcast the Five Questions, with an optional greeting for " +
 				string(2) + "username" + string(0xF) + " to the channel.")
-			sendPriv(string(2) + ".x4 [username]" + string(0xF) + "(alias: .x4questions)")
+			sendPriv(string(2) + ".x4questions [username]" + string(0xF) + "(alias: .x4)")
 			sendPriv(" will ask additional four Questions.")
 			sendPriv(string(2) + ".booze [booze_name_or_prefix]" + string(0xF) + "(alias: .b)")
 			sendPriv(" will list Boozes used in the mixed drink database.  This works as a string prefix search.")
