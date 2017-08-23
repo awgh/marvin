@@ -208,7 +208,7 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 		default: // The Wormhole Case : forward public messages across servers
 			for i := range ircClients {
 				if ircClients[i] != conn {
-					ircClients[i].Privmsg(config.Channel, line.Nick+" "+strings.Join(args[:], " "))
+					ircClients[i].Privmsg(config.Channel, "@_"+line.Nick+" "+strings.Join(args[:], " "))
 				}
 			}
 			break
