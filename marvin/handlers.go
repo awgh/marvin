@@ -85,9 +85,11 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 			break
 
 		case ".mcfly":
-			// maybe switch to chain file
-			// http://www.imdb.com/character/ch0001829/quotes
-			sendFn("If you put your mind to it, you can accomplish anything.")
+			if markovChains != nil && markovChains[1] != nil {
+				sendFn(markovChains[1].Generate(23))
+			} else {
+				log.Println("No chain file loaded in slot 1")
+			}
 			break
 
 		case ".d":
@@ -199,11 +201,12 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 			break
 
 		case ".m":
-			if loadedChain != nil {
-				sendFn(loadedChain.Generate(23))
+			if markovChains != nil && markovChains[0] != nil {
+				sendFn(markovChains[0].Generate(23))
 			} else {
-				log.Println("No chain file loaded")
+				log.Println("No chain file loaded in slot 1")
 			}
+			break
 
 		default: // The Wormhole Case : forward public messages across servers
 			for i := range ircClients {
