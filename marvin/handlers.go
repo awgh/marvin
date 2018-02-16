@@ -199,7 +199,8 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 				sendFn("fine, I will relay your message... here I am, brain the size of a planet...")
 			}
 			break
-
+                case ".awgh":
+                        fallthrough
 		case ".m":
 			if markovChains != nil && markovChains[0] != nil {
 				sendFn(markovChains[0].Generate(23))
