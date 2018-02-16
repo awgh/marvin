@@ -36,10 +36,10 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 			sendPriv(string(2) + "Marvin " + string(0xF) + "responds to private messages privately and responds to channel commands as notices,")
 			sendPriv("with the exception of the .5questions command, where the response is always broadcast to the channel.")
 			sendPriv("The following commands are available:")
-			sendPriv(string(2) + ".5 [username]" + string(0xF) + "(alias: .5questions)")
+			sendPriv(string(2) + ".5questions [username]" + string(0xF) + "(alias: .5)")
 			sendPriv(" will broadcast the Five Questions, with an optional greeting for " +
 				string(2) + "username" + string(0xF) + " to the channel.")
-			sendPriv(string(2) + ".x4 [username]" + string(0xF) + "(alias: .x4questions)")
+			sendPriv(string(2) + ".x4questions [username]" + string(0xF) + "(alias: .x4)")
 			sendPriv(" will ask additional four Questions.")
 			sendPriv(string(2) + ".booze [booze_name_or_prefix]" + string(0xF) + "(alias: .b)")
 			sendPriv(" will list Boozes used in the mixed drink database.  This works as a string prefix search.")
@@ -85,9 +85,11 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 			break
 
 		case ".mcfly":
-			// maybe switch to chain file
-			// http://www.imdb.com/character/ch0001829/quotes
-			sendFn("If you put your mind to it, you can accomplish anything.")
+			if markovChains != nil && markovChains[1] != nil {
+				sendFn(markovChains[1].Generate(23))
+			} else {
+				log.Println("No chain file loaded in slot 1")
+			}
 			break
 
 		case ".d":
@@ -199,16 +201,17 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 			break
 
 		case ".m":
-			if loadedChain != nil {
-				sendFn(loadedChain.Generate(23))
+			if markovChains != nil && markovChains[0] != nil {
+				sendFn(markovChains[0].Generate(23))
 			} else {
-				log.Println("No chain file loaded")
+				log.Println("No chain file loaded in slot 1")
 			}
+			break
 
 		default: // The Wormhole Case : forward public messages across servers
 			for i := range ircClients {
 				if ircClients[i] != conn {
-					ircClients[i].Privmsg(config.Channel, line.Nick+" "+strings.Join(args[:], " "))
+					ircClients[i].Privmsg(config.Channel, "@_"+line.Nick+" "+strings.Join(args[:], " "))
 				}
 			}
 			break

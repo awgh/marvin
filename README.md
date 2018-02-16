@@ -6,9 +6,13 @@ Marvin responds to private messages privately and responds to channel commands a
 with the exception of the .5questions command, where the response is always broadcast to the channel.
 The following commands are available:
 
-**.5 [username]**
-(alias: .5questions)
+**.5questions [username]**
+(alias: .5)
 will broadcast the Five Questions, with an optional greeting for username to the channel.
+
+**.x4questions [username]**
+(alias .x4)
+will ask additional four Questions.
 
 **.booze [booze_name_or_prefix]**
 (alias: .b)

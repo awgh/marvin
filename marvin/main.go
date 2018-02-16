@@ -49,7 +49,7 @@ type Message struct {
 }
 
 var ircClients []*irc.Conn
-var loadedChain *markov.Chain
+var markovChains []*markov.Chain
 
 // Map of hostnames to a map of chan names to a list of string nicks
 var hostsChansNames map[string]map[string][]string
@@ -59,9 +59,10 @@ var namesMessages map[string][]Message
 
 func main() {
 
-	var configDir, chainFile string
+	var configDir, chainFile, mcflyFile string
 	flag.StringVar(&configDir, "confdir", "config", "Config Directory")
 	flag.StringVar(&chainFile, "chain", "markov.chain", "Markov Chain File")
+	flag.StringVar(&mcflyFile, "mcfly", "mcfly.chain", "McFly Chain File")
 	flag.Parse()
 	logging.SetLogger(sLogger{})
 
@@ -69,10 +70,9 @@ func main() {
 	namesMessages = make(map[string][]Message)
 
 	// Markov Chain setup
-	lc, ok := loadChainFile(chainFile)
-	if ok {
-		loadedChain = lc
-	}
+	markovChains = make([]*markov.Chain, 2)
+	markovChains[0], _ = loadChainFile(chainFile)
+	markovChains[1], _ = loadChainFile(mcflyFile)
 
 	// Drinks DB setup
 	db, err := sql.Open("sqlite3", "./IBA-Cocktails-2016.sqlite3")
