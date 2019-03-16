@@ -199,13 +199,24 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 				sendFn("fine, I will relay your message... here I am, brain the size of a planet...")
 			}
 			break
-                case ".awgh":
-                        fallthrough
+		case ".awgh":
+			fallthrough
 		case ".m":
 			if markovChains != nil && markovChains[0] != nil {
 				sendFn(markovChains[0].Generate(23))
 			} else {
 				log.Println("No chain file loaded in slot 1")
+			}
+			break
+
+		case ".md5", ".md4", ".sha1", ".sha256", ".sha384", ".sha512", ".ntlm":
+			hash := args[1]
+			hashType := args[0][1:]
+			result, err := RemoteHashLookup(hash, hashType, config.MD5ApiUser, config.MD5ApiCode)
+			if err == nil {
+				sendFn(result)
+			} else {
+				sendFn(err.Error())
 			}
 			break
 

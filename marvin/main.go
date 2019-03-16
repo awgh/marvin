@@ -38,6 +38,9 @@ type MarvinConfig struct {
 	SASL         bool
 	Proxy        string
 	Channel      string
+
+	MD5ApiUser string
+	MD5ApiCode string
 }
 
 // Message - Contains an answering machine message
