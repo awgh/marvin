@@ -45,21 +45,25 @@ func handleSlack(api *slack.Client, ev *slack.MessageEvent, config *MarvinConfig
 
 	fmt.Printf("%+v\n", ev)
 
-	//deliverMessages(conn, line.Nick, config.Channel)
-	v, ok := namesMessages[ev.Username]
+	//deliverMessages
+	slackUser := "<@" + ev.User + ">"
+	v, ok := namesMessages[slackUser]
 	if ok {
 		for msg := range v {
 			if v[msg].Public {
 				api.PostMessage(ev.Channel,
 					slack.MsgOptionText(v[msg].From+" left a message for "+v[msg].To+": "+v[msg].Text, false))
 			} else {
-				api.PostMessage("@"+ev.Username,
-					slack.MsgOptionText(v[msg].From+" left a message: "+v[msg].Text, false))
+				_, _, channel, err := api.OpenIMChannel(ev.User)
+				if err == nil {
+					api.PostMessage(channel,
+						slack.MsgOptionText(v[msg].From+" left a message: "+v[msg].Text, false))
+				}
 			}
 		}
-		namesMessages[ev.Username] = make([]Message, 0)
+		namesMessages[slackUser] = make([]Message, 0)
 	}
-	//
+	//end deliverMessages
 
 	public := (config.SlackChannel == ev.Channel)
 
@@ -67,12 +71,22 @@ func handleSlack(api *slack.Client, ev *slack.MessageEvent, config *MarvinConfig
 	if public { // respond to public messages publicly
 		sendFn = func(msg string) { api.PostMessage(config.SlackChannel, slack.MsgOptionText(msg, false)) }
 	} else { // respond to private messages privately
-		sendFn = func(msg string) { api.PostMessage("@"+ev.Username, slack.MsgOptionText(msg, false)) }
+		sendFn = func(msg string) {
+			_, _, channel, err := api.OpenIMChannel(ev.User)
+			if err == nil {
+				api.PostMessage(channel, slack.MsgOptionText(msg, false))
+			}
+		}
 	}
 	broadcastFn := func(msg string) { api.PostMessage(config.SlackChannel, slack.MsgOptionText(msg, false)) }
-	sendPriv := func(msg string) { api.PostMessage("@"+ev.Username, slack.MsgOptionText(msg, false)) }
+	sendPriv := func(msg string) {
+		_, _, channel, err := api.OpenIMChannel(ev.User)
+		if err == nil {
+			api.PostMessage(channel, slack.MsgOptionText(msg, false))
+		}
+	}
 
-	if handled := universalHandler(ev.Username, ev.Text, public, sendFn, broadcastFn, sendPriv, config, db); !handled {
+	if handled := universalHandler(slackUser, ev.Text, public, sendFn, broadcastFn, sendPriv, config, db); !handled {
 		/*
 			// The Wormhole Case : forward public messages across servers
 			args := strings.Split(line.Args[1], " ")
