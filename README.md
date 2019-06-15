@@ -33,6 +33,10 @@ cd $HOME/go/src
 ./install.sh /opt/marvin
 ```
 
+### Create Your JSON Config Files
+
+TODO 
+
 
 ## Marvin Help
 
