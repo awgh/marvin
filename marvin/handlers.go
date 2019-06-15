@@ -1,15 +1,19 @@
-package main
+package marvin
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"strings"
 
 	irc "github.com/fluffle/goirc/client"
 
+	"github.com/nlopes/slack"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// IRC handler
 func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql.DB) {
 
 	LinePrinter(line)
@@ -25,7 +29,67 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 	broadcastFn := func(msg string) { conn.Privmsg(config.Channel, msg) }
 	sendPriv := func(msg string) { conn.Notice(line.Nick, msg) }
 
-	args := strings.Split(line.Args[1], " ")
+	if handled := universalHandler(line.Nick, line.Args[1], line.Public(), sendFn, broadcastFn, sendPriv, config, db); !handled {
+		// The Wormhole Case : forward public messages across servers
+		args := strings.Split(line.Args[1], " ")
+		for i := range ircClients {
+			if ircClients[i] != conn {
+				ircClients[i].Privmsg(config.Channel, "@_"+line.Nick+" "+strings.Join(args[:], " "))
+			}
+		}
+	}
+}
+
+// Slack handler
+func handleSlack(api *slack.Client, ev *slack.MessageEvent, config *MarvinConfig, db *sql.DB) {
+
+	fmt.Printf("%+v\n", ev)
+
+	//deliverMessages(conn, line.Nick, config.Channel)
+	v, ok := namesMessages[ev.Username]
+	if ok {
+		for msg := range v {
+			if v[msg].Public {
+				api.PostMessage(ev.Channel,
+					slack.MsgOptionText(v[msg].From+" left a message for "+v[msg].To+": "+v[msg].Text, false))
+			} else {
+				api.PostMessage("@"+ev.Username,
+					slack.MsgOptionText(v[msg].From+" left a message: "+v[msg].Text, false))
+			}
+		}
+		namesMessages[ev.Username] = make([]Message, 0)
+	}
+	//
+
+	public := (config.SlackChannel == ev.Channel)
+
+	var sendFn func(string)
+	if public { // respond to public messages publicly
+		sendFn = func(msg string) { api.PostMessage(config.SlackChannel, slack.MsgOptionText(msg, false)) }
+	} else { // respond to private messages privately
+		sendFn = func(msg string) { api.PostMessage("@"+ev.Username, slack.MsgOptionText(msg, false)) }
+	}
+	broadcastFn := func(msg string) { api.PostMessage(config.SlackChannel, slack.MsgOptionText(msg, false)) }
+	sendPriv := func(msg string) { api.PostMessage("@"+ev.Username, slack.MsgOptionText(msg, false)) }
+
+	if handled := universalHandler(ev.Username, ev.Text, public, sendFn, broadcastFn, sendPriv, config, db); !handled {
+		/*
+			// The Wormhole Case : forward public messages across servers
+			args := strings.Split(line.Args[1], " ")
+			for i := range ircClients {
+				if ircClients[i] != conn {
+					ircClients[i].Privmsg(config.Channel, "@_"+line.Nick+" "+strings.Join(args[:], " "))
+				}
+			}
+		*/
+	}
+}
+
+func universalHandler(fromNick string, message string, public bool,
+	sendFn func(string), broadcastFn func(string), sendPriv func(string),
+	config *MarvinConfig, db *sql.DB) bool {
+
+	args := strings.Split(message, " ")
 	if len(args) > 0 {
 		switch args[0] {
 
@@ -188,13 +252,13 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 			if len(args) > 2 {
 				_, ok := namesMessages[args[1]]
 				if !ok {
-					namesMessages[line.Nick] = make([]Message, 1)
+					namesMessages[fromNick] = make([]Message, 1)
 				}
 				namesMessages[args[1]] = append(namesMessages[args[1]], Message{
-					From:   line.Nick,
+					From:   fromNick,
 					To:     args[1],
 					Text:   strings.Join(args[2:], " "),
-					Public: line.Public(),
+					Public: public,
 				})
 				sendFn("fine, I will relay your message... here I am, brain the size of a planet...")
 			}
@@ -220,13 +284,9 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 			}
 			break
 
-		default: // The Wormhole Case : forward public messages across servers
-			for i := range ircClients {
-				if ircClients[i] != conn {
-					ircClients[i].Privmsg(config.Channel, "@_"+line.Nick+" "+strings.Join(args[:], " "))
-				}
-			}
-			break
+		default:
+			return false
 		}
 	}
+	return true
 }

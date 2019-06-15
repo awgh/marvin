@@ -1,11 +1,73 @@
-package main
+package marvin
 
 import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
+	"strings"
+	"time"
 
+	"github.com/awgh/goirc/logging"
 	"github.com/awgh/markov"
 	irc "github.com/fluffle/goirc/client"
 )
+
+// Run - Main run method - infinite loop
+func Run(configDir string, chainFile string, mcflyFile string) {
+
+	logging.SetLogger(sLogger{})
+
+	InitMarkovChains(chainFile, mcflyFile)
+
+	// Drinks DB setup
+	db, err := sql.Open("sqlite3", "./IBA-Cocktails-2016.sqlite3")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	files, err := ioutil.ReadDir(configDir) // open all json files in this directory, parse them, and call startIrcClient
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		fmt.Println(file.Name())
+
+		if strings.HasSuffix(file.Name(), ".json") {
+			dat, err := ioutil.ReadFile(configDir + string(os.PathSeparator) + file.Name())
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+
+			var ircClientConfig MarvinConfig
+			if err := json.Unmarshal(dat, &ircClientConfig); err != nil {
+				log.Fatal(err.Error())
+			}
+
+			// if SlackAPIToken is defined, we assume it's a Slack connection and ignore everything else
+			if len(ircClientConfig.SlackAPIToken) > 0 {
+				startSlackClient(&ircClientConfig, db)
+			} else {
+				startIrcClient(&ircClientConfig, db)
+			}
+		}
+	}
+
+	for {
+		for _, v := range ircClients {
+			if !v.Connected() {
+				log.Println("Connecting...")
+				if err := v.Connect(); err != nil {
+					log.Println(err.Error())
+				}
+			}
+		}
+		time.Sleep(time.Minute / 4)
+	}
+}
 
 func deliverMessages(conn *irc.Conn, nick string, channel string) {
 	v, ok := namesMessages[nick]
