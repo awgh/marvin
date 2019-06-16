@@ -58,6 +58,7 @@ If md5decrypt API credentials are provided, the following hash types can be crac
 ### .sha512 [hash]
 ### .ntlm [hash]
 
+
 ## Markov Chain Quote Commands
 
 ### .m
