@@ -77,6 +77,8 @@ Create a file in the config directory called "slack.json" (really anything with 
 In order to get a Slack API token, follow the instructions to create a Marvin App for your workspace here: 
 https://api.slack.com/apps/new 
 
+It doesn't need any special permissions, and you can name it whatever you want.  You'll mostly just click through.
+
 You will also need to create and manage Bot Users here: 
 https://api.slack.com/bot-users
 
