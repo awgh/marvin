@@ -57,3 +57,15 @@ If md5decrypt API credentials are provided, the following hash types can be crac
 ### .sha384 [hash]
 ### .sha512 [hash]
 ### .ntlm [hash]
+
+## Markov Chain Quote Commands
+
+### .m
+
+Hear from Marvin, the paranoid android.
+
+### .mcfly
+
+For a change of tone, hear from Marty McFly.
+
+The quotes can be customized used the markov-gen command from this package:  https://github.com/awgh/markov
