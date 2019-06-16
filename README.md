@@ -80,6 +80,8 @@ https://api.slack.com/apps/new
 You will also need to create and manage Bot Users here: 
 https://api.slack.com/bot-users
 
+When that is complete, under the "OAuth & Permissions" tab, you will find the "Bot User OAuth Access Token".  This is the token you will use for the "SlackAPIToken" value in your Slack JSON config file.
+
 The channel ID has to be the funky Slack channel ID string, not the human-readable channel name.  You can get this from logging into your workspace in the web browser, clicking on the target channel and looking in the URL bar, where you'll see something like this: 
 ```
 https://myworkspace.slack.com/messages/YOUR_CHANNEL_ID/details/
