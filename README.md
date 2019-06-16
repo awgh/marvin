@@ -36,7 +36,7 @@ cd $HOME/go/src
 ### Create Your JSON Config Files
 In the /opt/marvin/config directory (or your custom target equivalent), create a JSON file for each chat backend you wish to connect to.
 
-At this time, only ONE CONNECTION TO SLACK is supported, but multiple different IRC networks can be connected to at once.
+At this time, only ONE CONNECTION TO SLACK is supported, but multiple different IRC networks can be connected to at once, and you can connect to Slack at the same time as multiple IRC networks... but some features aren't completely working Slack<->IRC yet.
 
 
 #### Example IRC config 
@@ -62,7 +62,7 @@ Create a file in the config directory called "ANYTHING.json" and customize the f
 ```
 
 #### Example Slack config 
-Create a file in the config directory called "slack.json" and customize the following template with your own Slack information and your free md5decrypt API credentials from md5decrypt https://md5decrypt.net/en/Api/ (optional).
+Create a file in the config directory called "slack.json" (really anything with a .json extension) and customize the following template with your own Slack information and your free md5decrypt API credentials from md5decrypt https://md5decrypt.net/en/Api/ (optional).
 
 ```
 {
@@ -77,6 +77,8 @@ Create a file in the config directory called "slack.json" and customize the foll
 You will have to create a custom Slack App and add it to your Slack in order to get an app API token.
 
 The channel ID has to be the funky Slack channel ID string, not the human-readable channel name.
+
+Also, proxy support has not been implemented for Slack yet... not sure if anyone actually wants that anyway.
 
 
 ### Starting Marvin
