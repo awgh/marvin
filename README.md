@@ -34,8 +34,56 @@ cd $HOME/go/src
 ```
 
 ### Create Your JSON Config Files
+In the /opt/marvin/config directory (or your custom target equivalent), create a JSON file for each chat backend you wish to connect to.
 
-TODO 
+At this time, only ONE CONNECTION TO SLACK is supported, but multiple different IRC networks can be connected to at once.
+
+
+#### Example IRC config 
+Create a file in the config directory called "ANYTHING.json" and customize the following template with your own IRC information, proxy information (optional), and your free md5decrypt API credentials from md5decrypt https://md5decrypt.net/en/Api/ (optional).
+
+```
+{
+        "Host":"irc.freenode.net",
+        "Port":"6697",
+        "Nick":"YOUR_NICK_HERE",
+        "Password":"YOUR_PASSWORD_HERE",
+        "Channel":"#ratnet",
+        "Name":"YOUR_NAME_HERE",
+        "Version":"IRCsome v1.0",
+        "Quit":"bye!",
+        
+        "ProxyEnabled":false,
+        "Proxy":"socks5://PROXY_USER:PROXY_PASSWORD@PROXY_HOST:1080",
+        
+        "MD5ApiUser":"YOUR_MD5_API_USER",
+        "MD5ApiCode":"YOUR_MD5_API_KEY"
+}
+```
+
+#### Example Slack config 
+Create a file in the config directory called "slack.json" and customize the following template with your own Slack information and your free md5decrypt API credentials from md5decrypt https://md5decrypt.net/en/Api/ (optional).
+
+```
+{
+        "SlackAPIToken":"xorx-YOUR-SLACK-APP-API-TOKEN-HERE",
+        "SlackChannel":"SLACK_CHANNEL_ID",
+        
+        "MD5ApiUser":"YOUR_MD5_API_USER",
+        "MD5ApiCode":"YOUR_MD5_API_KEY"
+}
+```
+
+You will have to create a custom Slack App and add it to your Slack in order to get an app API token.
+
+The channel ID has to be the funky Slack channel ID string, not the human-readable channel name.
+
+
+### Starting Marvin
+```
+cd /opt/marvin
+./marvin
+```
 
 
 ## Marvin Help
