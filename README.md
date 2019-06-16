@@ -74,9 +74,12 @@ Create a file in the config directory called "slack.json" (really anything with 
 }
 ```
 
-You will have to create a custom Slack App and add it to your Slack in order to get an app API token.
+In order to get a Slack API token, follow the instructions to create your Bot User and add it to your workspace here: https://api.slack.com/bot-users
 
-The channel ID has to be the funky Slack channel ID string, not the human-readable channel name.
+The channel ID has to be the funky Slack channel ID string, not the human-readable channel name.  You can get this from logging into your workspace in the web browser, clicking on the target channel and looking in the URL bar, where you'll see something like this: 
+```
+https://myworkspace.slack.com/messages/YOUR_CHANNEL_ID/details/
+```
 
 Also, proxy support has not been implemented for Slack yet... not sure if anyone actually wants that anyway.
 
