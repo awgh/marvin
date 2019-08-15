@@ -31,29 +31,15 @@ func startSlackClient(config *MarvinConfig, db *sql.DB) {
 			case *slack.ConnectedEvent:
 				fmt.Println("Infos:", ev.Info)
 				fmt.Println("Connection counter:", ev.ConnectionCount)
-
-				//rtm.SendMessage(rtm.NewOutgoingMessage("Hello world", config.SlackChannel, slack.RTMsgOptionBroadcast()))
 				/*
-					attachment := slack.Attachment{
-						Pretext: "some pretext",
-						Text:    "some text",
-							Fields: []slack.AttachmentField{
-								slack.AttachmentField{
-									Title: "a",
-									Value: "no",
-								},
-							},
-
+					channelID, timestamp, err := api.PostMessage(config.SlackChannel,
+						slack.MsgOptionText("I think you ought to know, I'm feeling rather depressed.", false)) //slack.MsgOptionAttachments(attachment))
+					if err != nil {
+						fmt.Printf("%s\n", err)
+						return
 					}
+					fmt.Printf("Message successfully sent to channel %s at %s", channelID, timestamp)
 				*/
-				channelID, timestamp, err := api.PostMessage(config.SlackChannel,
-					slack.MsgOptionText("I think you ought to know, I'm feeling rather depressed.", false)) //slack.MsgOptionAttachments(attachment))
-				if err != nil {
-					fmt.Printf("%s\n", err)
-					return
-				}
-				fmt.Printf("Message successfully sent to channel %s at %s", channelID, timestamp)
-
 			case *slack.MessageEvent:
 				fmt.Printf("Message: %v\n", ev)
 
