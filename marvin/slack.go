@@ -18,6 +18,15 @@ func startSlackClient(config *MarvinConfig, db *sql.DB) {
 		slack.OptionLog(log.New(os.Stdout, "slack-bot: ", log.Lshortfile|log.LstdFlags)),
 	)
 
+	resp, err := api.AuthTest()
+	if err != nil {
+		log.Println(err)
+	}
+	user, err := api.GetUserInfo(resp.UserID)
+	if err != nil {
+		log.Println(err)
+	}
+
 	rtm := api.NewRTM()
 	go rtm.ManageConnection()
 
@@ -43,6 +52,9 @@ func startSlackClient(config *MarvinConfig, db *sql.DB) {
 			case *slack.MessageEvent:
 				fmt.Printf("Message: %v\n", ev)
 
+				if ev.BotID != "" || ev.BotID == user.ID {
+					break
+				}
 				handleSlack(api, ev, config, db)
 
 			case *slack.PresenceChangeEvent:
