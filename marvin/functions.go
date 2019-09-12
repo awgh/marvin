@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/awgh/goirc/logging"
 	"github.com/awgh/markov"
 	irc "github.com/fluffle/goirc/client"
+	"github.com/fluffle/goirc/logging"
 )
 
 // Run - Main run method - infinite loop
