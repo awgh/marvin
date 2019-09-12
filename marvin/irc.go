@@ -66,6 +66,12 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 			//log.Println("PING:")
 		})
 
+	c.HandleFunc(irc.NICK,
+		func(conn *irc.Conn, line *irc.Line) {
+			log.Printf("NICK: %+v\n", line)
+			checkNickFlood(conn, config, line.Args[0], line.Src) // nick is new nick, ident is src ident
+		})
+
 	c.HandleFunc("352", // Bug: RPL_WHOREPLY does not populate line correctly, use Args[5] for nick
 		func(conn *irc.Conn, line *irc.Line) {
 			log.Println("WHO:", line.Args[5])
