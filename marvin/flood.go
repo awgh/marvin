@@ -29,12 +29,12 @@ func init() {
 
 func checkNickFlood(conn *irc.Conn, config *MarvinConfig, nick string, ident string) {
 
-	idx := strings.Index(ident, "!")
+	idx := strings.Index(ident, "@")
 	if idx < 1 {
 		log.Println("Ident misformed?", ident)
 		return
 	}
-	banline := "*" + ident[idx:]
+	banline := "*!*" + ident[idx:]
 
 	log.Println("Checking Nick Flood on ", banline)
 
