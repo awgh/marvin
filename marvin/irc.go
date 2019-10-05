@@ -37,7 +37,13 @@ func startIrcClient(config *MarvinConfig, db *sql.DB) error {
 	c.HandleFunc(irc.CONNECTED,
 		func(conn *irc.Conn, line *irc.Line) {
 			hostsChansNames[config.Host] = make(map[string][]string) // initialize this host entry in the nick map
-			conn.Join(config.Channel)                                //todo: vectorize this
+
+			go func() {
+				for i := 0; i < 3; i++ {
+					time.Sleep(time.Second)
+					conn.Join(config.Channel)
+				}
+			}() //todo: vectorize this
 		})
 	c.HandleFunc(irc.DISCONNECTED,
 		func(conn *irc.Conn, line *irc.Line) {
