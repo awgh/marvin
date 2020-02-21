@@ -29,6 +29,11 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 	broadcastFn := func(msg string) { conn.Privmsg(config.Channel, msg) }
 	sendPriv := func(msg string) { conn.Notice(line.Nick, msg) }
 
+	// check for tweets ( IRC mode only, Slack does this for you )
+	if s := GetTweetFromText(line.Args[1]); s != "" {
+		sendPriv(s)
+	}
+
 	if handled := universalHandler(line.Nick, line.Args[1], line.Public(), sendFn, broadcastFn, sendPriv, config, db); !handled {
 		// The Wormhole Case : forward public messages across servers
 		args := strings.Split(line.Args[1], " ")
