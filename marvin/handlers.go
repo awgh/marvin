@@ -31,7 +31,7 @@ func handlePrivMsg(conn *irc.Conn, line *irc.Line, config *MarvinConfig, db *sql
 
 	// check for tweets ( IRC mode only, Slack does this for you )
 	if s := GetTweetFromText(line.Args[1]); s != "" {
-		sendPriv(s)
+		sendFn(s)
 	}
 
 	if handled := universalHandler(line.Nick, line.Args[1], line.Public(), sendFn, broadcastFn, sendPriv, config, db); !handled {
