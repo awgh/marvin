@@ -8,7 +8,7 @@ import (
 
 	irc "github.com/fluffle/goirc/client"
 
-	"github.com/nlopes/slack"
+	"github.com/slack-go/slack"
 
 	_ "github.com/mattn/go-sqlite3"
 )

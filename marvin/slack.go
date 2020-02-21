@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/nlopes/slack"
+	"github.com/slack-go/slack"
 )
 
 func startSlackClient(config *MarvinConfig, db *sql.DB) {
