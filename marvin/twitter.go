@@ -24,6 +24,9 @@ func GetTweetFromURL(url string) string {
 
 	text := ""
 	c.OnHTML("div.tweet-text div.dir-ltr", func(e *colly.HTMLElement) {
+		if text != "" {
+			return
+		}
 		text = strings.Trim(string(e.Text), " \n\t\v")
 	})
 	c.Visit(url)
