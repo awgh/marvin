@@ -165,7 +165,12 @@ func universalHandler(fromNick string, message string, public bool,
 			break
 
 		case ".macker":
-			sendFn("macker is a twat")
+			if markovChains != nil && markovChains[2] != nil {
+				sendFn(markovChains[2].Generate(23))
+			} else {
+				sendFn("macker is a twat")
+				log.Println("No chain file loaded in slot 2")
+			}
 			break
 
 		case ".mcfly":

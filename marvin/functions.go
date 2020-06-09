@@ -16,11 +16,11 @@ import (
 )
 
 // Run - Main run method - infinite loop
-func Run(configDir string, chainFile string, mcflyFile string) {
+func Run(configDir string, chainFile string, mcflyFile string, mackerFile string) {
 
 	logging.SetLogger(sLogger{})
 
-	InitMarkovChains(chainFile, mcflyFile)
+	InitMarkovChains(chainFile, mcflyFile, mackerFile)
 
 	// Drinks DB setup
 	db, err := sql.Open("sqlite3", "./IBA-Cocktails-2016.sqlite3")
